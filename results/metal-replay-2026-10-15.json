@@ -1,0 +1,30 @@
+{
+  "tool": "tools/metal_mesh_replay.swift <dump A> <dump B> 28 8 128 [modes]",
+  "dumps": {"A": "logs/tess-mesh-dump-2026-10-15/patch0-first.bin", "B": "logs/tess-mesh-dump-2026-10-15/patch13-alone.bin"},
+  "shape": "object grid (1,1,28), object threadgroup (8,4,1), mesh grid (workloads of the part, 128, 1), mesh threadgroup 32 threads with thread 0 working, mesh<V, PL, 3, 3, triangle>, layer written to primitive k by vertex k, 10128-byte payload with payloadMemoryLength 0, RG32Float 64x192x2 with additive blending",
+  "runs": [
+    {"modes": "", "b_alone": 6112, "b_after_a": 6112, "missing": 0},
+    {"modes": "nolayer", "b_alone": 6112, "b_after_a": 6112, "missing": 0},
+    {"modes": "same", "b_alone": 6112, "b_after_b": 6112, "missing": 0},
+    {"modes": "regs", "note": "Mullion's mesh vertex outputs: invariant position, reg1_0-3, reg2_0-3", "b_alone": 6112, "b_after_a": 6112, "missing": 0},
+    {"modes": "regs,mullionps", "note": "plus Mullion's own pixel shader (logs/tess-mesh-dump-2026-10-15/air/0_ps_main6c402e5c.metallib)", "b_alone": 6112, "b_after_a": 6112, "missing": 0}
+  ],
+  "mullion_functions": {
+    "tool": "tools/metal_mullion_replay.swift <object> <mesh> <pixel .metallib> [A factors] [B factors] [modes]",
+    "functions": "logs/tess-mesh-dump-2026-10-15/air/4_vshs_main.metallib, 3_ds_main.metallib, 0_ps_main6c402e5c.metallib (1_ and 2_ are Mullion's discarded first build without the grid limit, d3d12_pipeline_graphics.cpp:1247-1252: they fail with kIOGPUCommandBufferCallbackErrorOutOfMemory)",
+    "bindings": "root signature buffer(0) with the factors' constant buffer, points UAV and locks; draw arguments buffer(4) {1,1,0,0,0}; index buffer view buffer(3) {0,0,R16_UINT}; object grid (1,1,28), object threadgroup (8,4,1), mesh threadgroup 32; back-face culling, clockwise front",
+    "runs": [
+      {"modes": "", "b_alone": 6112, "b_after_a": 6112, "missing": 0},
+      {"modes": "same", "b_alone": 6112, "b_after_b": 6112, "missing": 0},
+      {"modes": "nocull", "b_alone": 6112, "b_after_a": 6112, "missing": 0},
+      {"modes": "x86_64 under Rosetta", "b_alone": 6112, "b_after_a": 6112, "missing": 0},
+      {"modes": "private (private render target, blit readback)", "b_alone": 6112, "b_after_a": 6112, "missing": 0},
+      {"modes": "mullionenv (1 GiB untracked arena from host memory with Mullion's offsets, fences, residency set, depth state, blend color, explicit viewport)", "b_alone": 6112, "b_after_a": 6112, "missing": 0},
+      {"modes": "mullionenv,private", "b_alone": 6112, "b_after_a": 6112, "missing": 0},
+      {"modes": "mullionenv, x86_64 under Rosetta", "b_alone": 6112, "b_after_a": 6112, "missing": 0},
+      {"modes": "mullionenv,private, x86_64 under Rosetta", "b_alone": 6112, "b_after_a": 6112, "missing": 0}
+    ]
+  },
+  "mullion_in_test": {"b_alone": "passes", "b_after_a": "1272 missing"},
+  "conclusion": "Pure Metal draws Mullion's exact triangles of patch 13 after patch 0's without losing any. What still differs from Mullion: its own compiled mesh and object functions, its vertex layout, and the rest of its pipeline and pass state."
+}

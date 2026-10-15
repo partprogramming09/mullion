@@ -1,0 +1,16 @@
+{
+ "a": "logs/tess-mesh-dump-2026-10-15/patch13-alone.bin",
+ "b": "logs/tess-mesh-dump-2026-10-15/patch13-after-0.bin",
+ "records": [
+  603,
+  603
+ ],
+ "words": [
+  16,
+  16
+ ],
+ "only_a": 0,
+ "only_b": 0,
+ "first_only_a": [],
+ "first_only_b": []
+}

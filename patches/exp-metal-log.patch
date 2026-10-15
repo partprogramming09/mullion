@@ -1,0 +1,98 @@
+diff --git a/src/winemetal/unix/winemetal_unix.c b/src/winemetal/unix/winemetal_unix.c
+index f588e7f..7f5f21e 100644
+--- a/src/winemetal/unix/winemetal_unix.c
++++ b/src/winemetal/unix/winemetal_unix.c
+@@ -120,9 +120,44 @@ _MTLCommandQueue_commandBuffer(void *obj) {
+   return STATUS_SUCCESS;
+ }
+ 
++/* local experiment, not for upstream: with EXP_METAL_LOG set, writes a line to stderr for each encoder and command */
++static bool
++exp_logging(void) {
++  static int on = -1;
++  if (on < 0)
++    on = getenv("EXP_METAL_LOG") != NULL;
++  return on;
++}
++
++/* writes a formatted line when EXP_METAL_LOG is set */
++static void
++exp_log(const char *format, ...) {
++  if (!exp_logging())
++    return;
++  va_list args;
++  va_start(args, format);
++  vfprintf(stderr, format, args);
++  va_end(args);
++}
++
++/* writes a command's type and its words after the header (up to 128 bytes, or to the next command) */
++static void
++exp_log_cmd(const char *kind, const struct wmtcmd_base *cmd) {
++  if (!exp_logging())
++    return;
++  const uint64_t *words = (const uint64_t *)cmd;
++  const char *here = (const char *)cmd, *next = (const char *)cmd->next.ptr;
++  uint64_t size = next > here && next - here <= 128 ? (uint64_t)(next - here) : 64;
++  fprintf(stderr, "EXP %s %u:", kind, cmd->type);
++  for (uint64_t i = 2; i < size / 8; i++)
++    fprintf(stderr, " %llx", (unsigned long long)words[i]);
++  fprintf(stderr, "\n");
++}
++
+ static NTSTATUS
+ _MTLCommandBuffer_commit(void *obj) {
+   struct unixcall_generic_obj_noret *params = obj;
++  exp_log("EXP commit\n");
+   [(id<MTLCommandBuffer>)params->handle commit];
+   return STATUS_SUCCESS;
+ }
+@@ -414,6 +449,7 @@ static NTSTATUS
+ _MTLCommandBuffer_blitCommandEncoder(void *obj) {
+   struct unixcall_generic_obj_obj_ret *params = obj;
+   params->ret = (obj_handle_t)[(id<MTLCommandBuffer>)params->handle blitCommandEncoder];
++  exp_log("EXP blit encoder\n");
+   return STATUS_SUCCESS;
+ }
+ 
+@@ -422,6 +458,7 @@ _MTLCommandBuffer_computeCommandEncoder(void *obj) {
+   struct unixcall_generic_obj_uint64_obj_ret *params = obj;
+   params->ret = (obj_handle_t)[(id<MTLCommandBuffer>)params->handle
+       computeCommandEncoderWithDispatchType:params->arg ? MTLDispatchTypeConcurrent : MTLDispatchTypeSerial];
++  exp_log("EXP compute encoder\n");
+   return STATUS_SUCCESS;
+ }
+ 
+@@ -490,6 +527,8 @@ renderCommandEncoder(void *obj, const struct WMTSampleBufferAttachmentInfo *samp
+     samples.endOfFragmentSampleIndex = sample->end_of_encoder_sample_index;
+   }
+   params->ret = (obj_handle_t)[(id<MTLCommandBuffer>)params->handle renderCommandEncoderWithDescriptor:descriptor];
++  if (exp_logging())
++    exp_log("EXP render encoder %s\n", [[descriptor description] UTF8String]);
+ 
+   [descriptor release];
+   return STATUS_SUCCESS;
+@@ -714,6 +753,7 @@ _MTLBlitCommandEncoder_encodeCommands(void *obj) {
+   const struct wmtcmd_base *next = params->cmd_head.ptr;
+   id<MTLBlitCommandEncoder> encoder = (id<MTLBlitCommandEncoder>)params->encoder;
+   while (next) {
++    exp_log_cmd("blit", next);
+     switch ((enum WMTBlitCommandType)next->type) {
+     default:
+       assert(!next->type && "unhandled blit command type");
+@@ -849,6 +889,7 @@ _MTLComputeCommandEncoder_encodeCommands(void *obj) {
+   id<MTLComputeCommandEncoder> encoder = (id<MTLComputeCommandEncoder>)params->encoder;
+   MTLSize threadgroup_size = {0, 0, 0};
+   while (next) {
++    exp_log_cmd("compute", next);
+     switch ((enum WMTComputeCommandType)next->type) {
+     default:
+       assert(!next->type && "unhandled compute command type");
+@@ -996,6 +1037,7 @@ _MTLRenderCommandEncoder_encodeCommands(void *obj) {
+   bool pipeline = true;
+   while (next) {
+     enum WMTRenderCommandType type = next->type;
++    exp_log_cmd("render", next);
+     if (!pipeline && ((type >= WMTRenderCommandDraw && type <= WMTRenderCommandDrawMeshThreadgroupsIndirect) ||
+                       (type >= WMTRenderCommandDXMTGeometryDraw && type <= WMTRenderCommandDXMTGeometryDrawIndexedIndirect) ||
+                       (type >= WMTRenderCommandDXMTTessellationMeshDraw && type <= WMTRenderCommandExecuteCommandsInBuffer))) {

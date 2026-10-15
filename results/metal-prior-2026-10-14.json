@@ -1,0 +1,18 @@
+{
+  "tool": "tools/metal_mesh_tess_shape.swift <grid height> <active rows> <modes> 128",
+  "question": "Does a different-shaped mesh draw with the same pipeline, in an earlier command buffer, make the next layered draw lose triangles in pure Metal?",
+  "shapes": ["256 128", "32 7"],
+  "modes": [
+    "payload,scalar2",
+    "payload,scalar2,nozero",
+    "payload,scalar2,prior=1024:1000",
+    "payload,scalar2,nozero,prior=1024:1000",
+    "payload,scalar2,prior=8:2",
+    "payload,scalar2,nozero,prior=8:2",
+    "payload,scalar2,nozero,prior=1024:1000,objz",
+    "payload,scalar2,nozero,prior=512:300,empty"
+  ],
+  "result": "16384 of 16384 pixels covered in every run, single and layered",
+  "limit": "Each mesh threadgroup emits one triangle, as Mullion's does in this test (logs/tess-mesh-dump-2026-10-15: every record is vertex 0-2 of a strip with 0 primitives before). Still different: the exact vertex data, Mullion's 144-byte vertex layout with a 16-bit layer, its object and mesh grids, and a prior draw of patch 0's real shape",
+  "conclusion": "Pure Metal does not reproduce the history dependence: the cause is probably in what Mullion's shaders read"
+}

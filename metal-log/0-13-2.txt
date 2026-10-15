@@ -1,0 +1,89 @@
+EXP commit
+draw 0
+EXP render encoder <MTLRenderPassDescriptorInternal: 0x600000752700>
+EXP render 33: 6000035101e0 19 30 0 0 6fffffd47349
+EXP render 0: 1470dc0 0 0 14705e0 0 10000 0 1000000010 0
+EXP render 15: 7f8a7f893200 0
+EXP render 45: 600001861e00 0
+EXP render 12: 200 0
+EXP render 8: 7f8a7f1711d0 10000 0 0
+EXP render 6: 7f8a7f1711d0 10000 0 0
+EXP render 4: 7f8a7f1711d0 10000 0 0
+EXP render 8: 7f8a7f1711d0 0 1 0
+EXP render 6: 7f8a7f1711d0 0 1 0
+EXP render 4: 7f8a7f1711d0 0 1 0 0 4050000000000000
+EXP render 13: 1470798 10 0 0 40 c0
+EXP render 14: 1470ac0 10
+EXP render 43: 3f8000003f800000 3f8000003f800000 0 0
+EXP render 44: 0 0
+EXP render 8: 7f8a7f1711d0 10020 3 0
+EXP render 8: 7f8a7f1711d0 10030 8 0
+EXP render 8: 7f8a7f1711d0 10040 4 0
+EXP render 37: 10040 800000001 100000004 1c 3 0
+EXP render 34: 6000035101e0 2 30 0 0 6fffffd47349
+EXP blit encoder
+EXP blit 6: 6000035101e0 0 0 0 0 0
+EXP blit 0: 1470ea0 0
+EXP blit 11: 7f8a7f176ce0 0 0 0 0 40 c0 1 7f8a7f1771c0 0 200 0
+EXP blit 11: 7f8a7f176ce0 1 0 0 0 40
+EXP blit 7: 6000035101e0 0 0 0 0 0
+EXP commit
+draw 13
+EXP render encoder <MTLRenderPassDescriptorInternal: 0x600000758a00>
+EXP render 33: 6000035101e0 19 30 0 0 6fffffd47349
+EXP render 0: 1470dc0 0 0 14705e0 0 10000 0 1000000010 0
+EXP render 15: 7f8a7f893200 0
+EXP render 45: 600001861e00 0
+EXP render 12: 200 0
+EXP render 8: 7f8a7f1711d0 10000 0 0
+EXP render 6: 7f8a7f1711d0 10000 0 0
+EXP render 4: 7f8a7f1711d0 10000 0 0
+EXP render 8: 7f8a7f1711d0 0 1 0
+EXP render 6: 7f8a7f1711d0 0 1 0
+EXP render 4: 7f8a7f1711d0 0 1 0 0 4050000000000000
+EXP render 13: 1470798 10 0 0 40 c0
+EXP render 14: 1470ac0 10
+EXP render 43: 3f8000003f800000 3f8000003f800000 0 0
+EXP render 44: 0 0
+EXP render 8: 7f8a7f1711d0 10020 3 0
+EXP render 8: 7f8a7f1711d0 10030 8 0
+EXP render 8: 7f8a7f1711d0 10040 4 0
+EXP render 37: 10040 800000001 100000004 1c 3 0
+EXP render 34: 6000035101e0 2 30 0 0 6fffffd47349
+EXP blit encoder
+EXP blit 6: 6000035101e0 0 0 0 0 0
+EXP blit 0: 1470ea0 0
+EXP blit 11: 7f8a7f176ce0 0 0 0 0 40 c0 1 7f8a7f1771c0 0 200 0
+EXP blit 11: 7f8a7f176ce0 1 0 0 0 40
+EXP blit 7: 6000035101e0 0 0 0 0 0
+EXP commit
+draw 2
+EXP render encoder <MTLRenderPassDescriptorInternal: 0x600000752a00>
+EXP render 33: 6000035101e0 19 140056517 6fffff31aba8 0 6fffff2f9aa4
+EXP render 0: 1470dc0 0 0 14705e0 0 10000 0 1000000010 0
+EXP render 15: 7f8a7f893200 0
+EXP render 45: 600001861e00 0
+EXP render 12: 200 0
+EXP render 8: 7f8a7f1711d0 10000 0 0
+EXP render 6: 7f8a7f1711d0 10000 0 0
+EXP render 4: 7f8a7f1711d0 10000 0 0
+EXP render 8: 7f8a7f1711d0 0 1 0
+EXP render 6: 7f8a7f1711d0 0 1 0
+EXP render 4: 7f8a7f1711d0 0 1 0 0 4050000000000000
+EXP render 13: 1470798 10 0 0 40 c0
+EXP render 14: 1470ac0 10
+EXP render 43: 3f8000003f800000 3f8000003f800000 0 0
+EXP render 44: 0 0
+EXP render 8: 7f8a7f1711d0 10020 3 0
+EXP render 8: 7f8a7f1711d0 10030 8 0
+EXP render 8: 7f8a7f1711d0 10040 4 0
+EXP render 37: 10040 800000001 100000004 1c 3 0
+EXP render 34: 6000035101e0 2 140056517 6fffff31aba8 0 6fffff2f9aa4
+EXP blit encoder
+EXP blit 6: 6000035101e0 0 0 0 0 0
+EXP blit 0: 1470ea0 0
+EXP blit 11: 7f8a7f176ce0 0 0 0 0 40 c0 1 7f8a7f1771c0 0 200 0
+EXP blit 11: 7f8a7f176ce0 1 0 0 0 40
+EXP blit 7: 6000035101e0 0 0 0 0 0
+EXP commit
+failed: 1272 wrong

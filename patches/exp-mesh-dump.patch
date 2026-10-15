@@ -1,0 +1,128 @@
+diff --git a/src/airconv/dxbc_converter_gs.cpp b/src/airconv/dxbc_converter_gs.cpp
+index 6b6ebf6..eabb03f 100644
+--- a/src/airconv/dxbc_converter_gs.cpp
++++ b/src/airconv/dxbc_converter_gs.cpp
+@@ -237,6 +237,21 @@ convert_dxbc_geometry_shader(
+   // a tessellated draw's mesh threadgroups have the domain stage's threads, of which the first does the work
+   uint32_t thread_idx = pHullStage ? func_signature.DefineInput(air::InputThreadPositionInThreadgroup{}) : ~0u;
+   uint32_t so_idx = so ? stream_output_input(func_signature, context, types) : ~0u;
++  // local experiment, not for upstream: EXP_MESH_DUMP set makes a tessellated geometry shader record every vertex it
++  // emits in a buffer at mesh index 10: word 0 counts them, word 1 is a record's size in words, then from word 4 the
++  // records (workload, primitive, vertex in strip, primitives before the strip, then every output register)
++  bool exp_dump = pHullStage && getenv("EXP_MESH_DUMP");
++  uint32_t dump_idx = exp_dump ? func_signature.DefineInput(air::ArgumentBindingBuffer{
++                                     .buffer_size = {},
++                                     .location_index = 10,
++                                     .array_size = 0,
++                                     .memory_access = air::MemoryAccess::read_write,
++                                     .address_space = air::AddressSpace::device,
++                                     .type = air::MSLUint{},
++                                     .arg_name = "exp_dump",
++                                     .raster_order_group = {}
++                                 })
++                               : ~0u;
+ 
+   if (pShaderInternal->clip_distance_scalars.size() > 0) {
+     func_signature.DefineMeshVertexOutput(
+@@ -383,6 +398,31 @@ convert_dxbc_geometry_shader(
+       for (auto &h : gs_output_handlers) {
+         co_yield h(gs_out_ctx);
+       }
++      if (exp_dump) {
++        uint32_t words = 4 + 4 * max_output_register, capacity = ((16u << 20) - 4) / words;
++        auto dump = function->getArg(dump_idx);
++        auto slot = air.CreateAtomicRMW(llvm::AtomicRMWInst::Add, dump, one_const);
++        builder.CreateStore(builder.getInt32(words), builder.CreateConstInBoundsGEP1_32(types._int, dump, 1));
++        auto base = builder.CreateAdd(
++            builder.getInt32(4), builder.CreateMul(
++                                     air.CreateIntBinOp(llvm::air::AIRBuilder::min, slot, builder.getInt32(capacity - 1)),
++                                     builder.getInt32(words)
++                                 )
++        );
++        std::vector<llvm::Value *> values{workload, primitive_id_in_warp, current_write_vertex, current_primitive_count};
++        for (uint32_t reg = 0; reg < max_output_register; reg++)
++          for (uint32_t component = 0; component < 4; component++)
++            values.push_back(builder.CreateLoad(
++                types._int, builder.CreateGEP(
++                                llvm::ArrayType::get(types._int4, max_output_register), resource_map.output.ptr_int4,
++                                {zero_const, builder.getInt32(reg), builder.getInt32(component)}
++                            )
++            ));
++        for (uint32_t i = 0; i < values.size(); i++)
++          builder.CreateStore(
++              values[i], builder.CreateGEP(types._int, dump, {builder.CreateAdd(base, builder.getInt32(i))})
++          );
++      }
+       emit_clip_distances(current_vertex_with_offset);
+       cull_primitive(current_write_vertex, current_primitive_count, 3);
+ 
+diff --git a/src/winemetal/unix/winemetal_unix.c b/src/winemetal/unix/winemetal_unix.c
+index f588e7f..82b1058 100644
+--- a/src/winemetal/unix/winemetal_unix.c
++++ b/src/winemetal/unix/winemetal_unix.c
+@@ -987,6 +987,33 @@ draw_geometry_indirect_parts(id<MTLRenderCommandEncoder> encoder, id<MTLBuffer>
+   }
+ }
+ 
++/* local experiment, not for upstream: with EXP_MESH_DUMP=<unix dir>, binds a 64 MiB dump buffer at mesh index 10 for a
++   tessellated draw, after writing what the previous one recorded to <dir>/dump-<n>.bin and clearing its count */
++static void
++exp_mesh_dump(id<MTLRenderCommandEncoder> encoder) {
++  static id<MTLBuffer> buffer;
++  static int draws;
++  const char *dir = getenv("EXP_MESH_DUMP");
++  if (!dir)
++    return;
++  if (!buffer) {
++    buffer = [[encoder device] newBufferWithLength:64 << 20 options:MTLResourceStorageModeShared];
++  } else {
++    uint32_t *words = buffer.contents;
++    uint32_t size = words[1], capacity = size ? ((16u << 20) - 4) / size : 0;
++    uint32_t records = words[0] < capacity ? words[0] : capacity;
++    char path[1024];
++    snprintf(path, sizeof(path), "%s/dump-%03d.bin", dir, draws++);
++    FILE *file = fopen(path, "wb");
++    if (file) {
++      fwrite(words, 4, 4 + (size_t)records * size, file);
++      fclose(file);
++    }
++  }
++  memset(buffer.contents, 0, 16);
++  [encoder setMeshBuffer:buffer offset:0 atIndex:10];
++}
++
+ static NTSTATUS
+ _MTLRenderCommandEncoder_encodeCommands(void *obj) {
+   struct unixcall_generic_obj_cmd_noret *params = obj;
+@@ -1254,6 +1281,7 @@ _MTLRenderCommandEncoder_encodeCommands(void *obj) {
+     case WMTRenderCommandDXMTTessellationMeshDraw: {
+       struct wmtcmd_render_dxmt_tessellation_mesh_draw *body = (struct wmtcmd_render_dxmt_tessellation_mesh_draw *)next;
+       [encoder setObjectBufferOffset:body->draw_arguments_offset atIndex:SM50_BINDING_INDEX_DRAW_ARGUMENTS];
++      exp_mesh_dump(encoder);
+       [encoder drawMeshThreadgroups:MTLSizeMake(body->patch_per_mesh_instance, body->instance_count, body->parts)
+           threadsPerObjectThreadgroup:MTLSizeMake(body->threads_per_patch, body->patch_per_group, 1)
+             threadsPerMeshThreadgroup:MTLSizeMake(32, 1, 1)];
+@@ -1266,6 +1294,7 @@ _MTLRenderCommandEncoder_encodeCommands(void *obj) {
+                         offset:body->index_buffer_offset
+                        atIndex:SM50_BINDING_INDEX_INDEX_BUFFER];
+       [encoder setObjectBufferOffset:body->draw_arguments_offset atIndex:SM50_BINDING_INDEX_DRAW_ARGUMENTS];
++      exp_mesh_dump(encoder);
+       [encoder drawMeshThreadgroups:MTLSizeMake(body->patch_per_mesh_instance, body->instance_count, body->parts)
+           threadsPerObjectThreadgroup:MTLSizeMake(body->threads_per_patch, body->patch_per_group, 1)
+             threadsPerMeshThreadgroup:MTLSizeMake(32, 1, 1)];
+@@ -1277,6 +1306,7 @@ _MTLRenderCommandEncoder_encodeCommands(void *obj) {
+       [encoder setObjectBuffer:(id<MTLBuffer>)body->indirect_args_buffer
+                         offset:body->indirect_args_offset
+                        atIndex:SM50_BINDING_INDEX_INDIRECT_ARGUMENTS];
++      exp_mesh_dump(encoder);
+       [encoder drawMeshThreadgroupsWithIndirectBuffer:(id<MTLBuffer>)body->dispatch_args_buffer
+                                  indirectBufferOffset:body->dispatch_args_offset
+                           threadsPerObjectThreadgroup:MTLSizeMake(body->threads_per_patch, body->patch_per_group, 1)
+@@ -1295,6 +1325,7 @@ _MTLRenderCommandEncoder_encodeCommands(void *obj) {
+       [encoder setObjectBuffer:(id<MTLBuffer>)body->indirect_args_buffer
+                         offset:body->indirect_args_offset
+                        atIndex:SM50_BINDING_INDEX_INDIRECT_ARGUMENTS];
++      exp_mesh_dump(encoder);
+       [encoder drawMeshThreadgroupsWithIndirectBuffer:(id<MTLBuffer>)body->dispatch_args_buffer
+                                  indirectBufferOffset:body->dispatch_args_offset
+                           threadsPerObjectThreadgroup:MTLSizeMake(body->threads_per_patch, body->patch_per_group, 1)

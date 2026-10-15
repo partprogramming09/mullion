@@ -1,0 +1,47 @@
+{
+  "test": "d3d12_tessellator dxil",
+  "case": "tri, integer, layers",
+  "patch": "patches/exp-tess-order.patch",
+  "env": "MULLION_LAYERS_ONLY=1 MULLION_ONLY_CASE=\"tri, integer, layers\"",
+  "runs": [
+    {"order": "0,13", "failed": [13], "wrong": 1272},
+    {"order": "13", "failed": [], "wrong": 0},
+    {"order": "13,13", "failed": [], "wrong": 0},
+    {"order": "13,0,13", "failed": ["second 13"], "wrong": 1272},
+    {"order": "0,13", "switches": "MULLION_DIRECT_ONLY=1", "failed": [13], "wrong": 1272},
+    {"order": "0,13", "switches": "MULLION_FRESH_PSO=1", "failed": [13], "wrong": 1272},
+    {"order": "0,13,1,13,...,12,13,14,13", "switches": "MULLION_DIRECT_ONLY=1", "failed": ["13 after each of the 14 other patches", 7, 10], "wrong": 18881},
+    {"order": "0,1,0,2,...,0,12,0,14", "switches": "MULLION_DIRECT_ONLY=1", "failed": [7], "wrong": 21}
+  ],
+  "later_runs_2026_10_15": [
+    {"order": "2,13", "switches": "MULLION_DIRECT_ONLY=1", "failed": [], "wrong": 0},
+    {"order": "6,13", "switches": "MULLION_DIRECT_ONLY=1", "failed": [13], "wrong": 1272},
+    {"order": "0", "switches": "MULLION_DIRECT_ONLY=1, without MULLION_LAYERS_ONLY (other pipelines draw first)", "failed": [0], "wrong": 1247},
+    {"order": "13", "switches": "MULLION_DIRECT_ONLY=1, without MULLION_LAYERS_ONLY", "failed": [], "wrong": 0},
+    {"order": "0,13 and the interleaved order", "switches": "EXP_TESS_ZERO=1 (patches/exp-tess-zero.patch)", "wrong": [1272, 18881]},
+    {"order": "0,13 and the interleaved order", "switches": "EXP_MESH_ZERO=1 (patches/exp-tess-zero.patch)", "wrong": [1272, 18881]}
+  ],
+  "switches_2026_10_15": {
+    "note": "MULLION_DIRECT_ONLY=1 in every run; patches/exp-tess-order.patch",
+    "runs": [
+      {"switch": "none", "order": "0,13", "wrong": 1272},
+      {"switch": "MULLION_SLEEP_MS=500", "order": "13", "wrong": 0},
+      {"switch": "MULLION_SLEEP_MS=500", "order": "0,13", "wrong": 1272},
+      {"switch": "MULLION_CLEAR_APART=1", "order": "13", "wrong": 0},
+      {"switch": "MULLION_CLEAR_APART=1", "order": "0,13", "wrong": 1272},
+      {"switch": "MULLION_COPY_APART=1", "order": "13", "wrong": 0},
+      {"switch": "MULLION_COPY_APART=1", "order": "0,13", "wrong": 1272}
+    ],
+    "conclusion": "Not timing, and not the clear or the copies sharing the draw's command buffer"
+  },
+  "mesh_dump_2026_10_15": {
+    "patch": "patches/exp-mesh-dump.patch",
+    "files": "logs/tess-mesh-dump-2026-10-15/ (compare with python3 -I tools/mesh_dump_diff.py A B)",
+    "runs": [
+      {"order": "13,2", "result": "passed", "patch13_records": 603},
+      {"order": "0,13,2", "result": "1272 wrong", "patch13_records": 603}
+    ],
+    "diff": "0 records only in either: patch 13's emitted vertices are bit-identical in both runs"
+  },
+  "conclusion": "Patch 13 fails after a larger draw, of this pipeline or another, and passes alone, after itself or after the tiny patch 2. Zeroing the payload, the object stage's threadgroup memory and the mesh's private variables changes nothing, and pure Metal does not reproduce it (logs/metal-prior-2026-10-14.json). Left as a report for Mullion's author."
+}

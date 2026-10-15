@@ -1,0 +1,60 @@
+EXP commit
+draw 13
+EXP render encoder <MTLRenderPassDescriptorInternal: 0x600000d33d00>
+EXP render 33: 600003f73cf0 19 30 0 0 6fffffd47349
+EXP render 0: 1470dc0 0 0 14705e0 0 10000 0 1000000010 0
+EXP render 15: 7fa53a87da00 0
+EXP render 45: 600001219220 0
+EXP render 12: 200 0
+EXP render 8: 7fa53b142e70 10000 0 0
+EXP render 6: 7fa53b142e70 10000 0 0
+EXP render 4: 7fa53b142e70 10000 0 0
+EXP render 8: 7fa53b142e70 0 1 0
+EXP render 6: 7fa53b142e70 0 1 0
+EXP render 4: 7fa53b142e70 0 1 0 0 4050000000000000
+EXP render 13: 1470798 10 0 0 40 c0
+EXP render 14: 1470ac0 10
+EXP render 43: 3f8000003f800000 3f8000003f800000 0 0
+EXP render 44: 0 0
+EXP render 8: 7fa53b142e70 10020 3 0
+EXP render 8: 7fa53b142e70 10030 8 0
+EXP render 8: 7fa53b142e70 10040 4 0
+EXP render 37: 10040 800000001 100000004 1c 3 0
+EXP render 34: 600003f73cf0 2 30 0 0 6fffffd47349
+EXP blit encoder
+EXP blit 6: 600003f73cf0 0 0 0 0 0
+EXP blit 0: 1470ea0 0
+EXP blit 11: 7fa53b148980 0 0 0 0 40 c0 1 7fa53b148e60 0 200 0
+EXP blit 11: 7fa53b148980 1 0 0 0 40
+EXP blit 7: 600003f73cf0 0 0 0 0 0
+EXP commit
+draw 2
+EXP render encoder <MTLRenderPassDescriptorInternal: 0x600000d3df00>
+EXP render 33: 600003f73cf0 19 30 0 0 6fffffd47349
+EXP render 0: 1470dc0 0 0 14705e0 0 10000 0 1000000010 0
+EXP render 15: 7fa53a87da00 0
+EXP render 45: 600001219220 0
+EXP render 12: 200 0
+EXP render 8: 7fa53b142e70 10000 0 0
+EXP render 6: 7fa53b142e70 10000 0 0
+EXP render 4: 7fa53b142e70 10000 0 0
+EXP render 8: 7fa53b142e70 0 1 0
+EXP render 6: 7fa53b142e70 0 1 0
+EXP render 4: 7fa53b142e70 0 1 0 0 4050000000000000
+EXP render 13: 1470798 10 0 0 40 c0
+EXP render 14: 1470ac0 10
+EXP render 43: 3f8000003f800000 3f8000003f800000 0 0
+EXP render 44: 0 0
+EXP render 8: 7fa53b142e70 10020 3 0
+EXP render 8: 7fa53b142e70 10030 8 0
+EXP render 8: 7fa53b142e70 10040 4 0
+EXP render 37: 10040 800000001 100000004 1c 3 0
+EXP render 34: 600003f73cf0 2 30 0 0 6fffffd47349
+EXP blit encoder
+EXP blit 6: 600003f73cf0 0 0 0 0 0
+EXP blit 0: 1470ea0 0
+EXP blit 11: 7fa53b148980 0 0 0 0 40 c0 1 7fa53b148e60 0 200 0
+EXP blit 11: 7fa53b148980 1 0 0 0 40
+EXP blit 7: 600003f73cf0 0 0 0 0 0
+EXP commit
+passed: 0 points of 960 patches as the reference's, 0 draws, 0 with the reference's triangles, 2 into layers with 157 triangles of mixed ones
